@@ -1,0 +1,624 @@
+<title>Huntington's in Canada, 2026–2076</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single column, controls rail above a full-width plot, notes below. */
+:root{
+  color-scheme: light;
+  --bg:#fbfaf8;
+  --surface:#ffffff;
+  --surface-2:#f3f1ed;
+  --line:#dcd8d1;
+  --ink:#1a1816;
+  --ink-2:#565048;
+  --ink-3:#8a8278;
+  --s1:#2a78d6;      /* no policy change */
+  --s2:#eb6834;      /* with germline exception */
+  --accent:#2a78d6;
+  --warn:#8a5a00;
+  --font-sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#15140f;
+    --surface:#1d1c17;
+    --surface-2:#262520;
+    --line:#38362f;
+    --ink:#f2efe8;
+    --ink-2:#c2bdb1;
+    --ink-3:#8d877b;
+    --s1:#3987e5;
+    --s2:#d95926;
+    --accent:#3987e5;
+    --warn:#d9a441;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#15140f;
+  --surface:#1d1c17;
+  --surface-2:#262520;
+  --line:#38362f;
+  --ink:#f2efe8;
+  --ink-2:#c2bdb1;
+  --ink-3:#8d877b;
+  --s1:#3987e5;
+  --s2:#d95926;
+  --accent:#3987e5;
+  --warn:#d9a441;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-sans);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{
+  max-width:1020px;
+  margin:0 auto;
+  padding-block:2.25rem 3.5rem;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;
+  flex-direction:column;
+  gap:1.5rem;
+}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin:0;
+}
+h1{
+  font-size:clamp(1.65rem,4.2vw,2.3rem);
+  line-height:1.15;
+  font-weight:600;
+  letter-spacing:-.02em;
+  margin:.35rem 0 0;
+  text-wrap:balance;
+}
+.standfirst{
+  margin:.7rem 0 0;
+  color:var(--ink-2);
+  max-width:63ch;
+}
+.standfirst strong{color:var(--ink);font-weight:600}
+
+/* ---- panel ---- */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+.panel-pad{padding:1.1rem 1.15rem}
+
+/* ---- controls ---- */
+.scenario-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.45rem;
+  align-items:center;
+}
+.scenario-row .lbl{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin-right:.2rem;
+}
+button.preset{
+  font:inherit;
+  font-size:13px;
+  padding:.33rem .7rem;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--surface-2);
+  color:var(--ink-2);
+  cursor:pointer;
+}
+button.preset:hover{border-color:var(--ink-3);color:var(--ink)}
+button.preset[aria-pressed="true"]{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+  font-weight:500;
+}
+:root[data-theme="dark"] button.preset[aria-pressed="true"],
+button.preset[aria-pressed="true"]{color:#fff}
+button.preset:focus-visible,.seg button:focus-visible,input:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(232px,1fr));
+  gap:1rem 1.6rem;
+  margin-top:1.05rem;
+  padding-top:1.05rem;
+  border-top:1px solid var(--line);
+}
+.ctrl{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.ctrl-head{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.ctrl label{font-size:13px;color:var(--ink-2);font-weight:500}
+.ctrl .val{
+  font-family:var(--font-mono);
+  font-size:13px;
+  font-weight:500;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.ctrl .hint{font-size:11.5px;color:var(--ink-3);line-height:1.4}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+
+/* ---- chart ---- */
+.chart-head{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.75rem 1rem;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:.4rem;
+}
+.chart-title{font-size:1.02rem;font-weight:600;margin:0;letter-spacing:-.01em}
+.chart-sub{margin:.15rem 0 0;font-size:12.5px;color:var(--ink-3)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{
+  font:inherit;font-size:12.5px;padding:.3rem .62rem;
+  background:var(--surface);color:var(--ink-2);border:0;cursor:pointer;
+  border-right:1px solid var(--line);
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--ink);font-weight:600}
+svg.plot{display:block;width:100%;height:auto;overflow:visible}
+
+.legend{display:flex;flex-wrap:wrap;gap:.35rem 1.1rem;margin-top:.55rem}
+.legend span{display:inline-flex;align-items:center;gap:.42rem;font-size:12.5px;color:var(--ink-2)}
+.swatch{width:16px;height:3px;border-radius:2px;flex:none}
+
+/* ---- scrub + readout ---- */
+.scrub{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--line)}
+.readout{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:.75rem 1.1rem;
+  margin-top:.85rem;
+}
+.stat{
+  border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .62rem;
+  min-width:0;
+}
+.stat.a{border-left-color:var(--s1)}
+.stat.b{border-left-color:var(--s2)}
+.stat .k{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3);display:block;
+}
+.stat .v{
+  font-family:var(--font-mono);font-size:1.32rem;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;display:block;line-height:1.25;
+}
+.stat .s{font-size:11.5px;color:var(--ink-3);display:block}
+
+/* ---- notes ---- */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:1.15rem 1.6rem}
+.note h3{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 .45rem;font-weight:600;
+}
+.note p{margin:0 0 .6rem;font-size:13.5px;color:var(--ink-2);line-height:1.56}
+.note p:last-child{margin-bottom:0}
+.note strong{color:var(--ink);font-weight:600}
+code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);padding:.08em .32em;border-radius:3px}
+.flag{
+  border-left:3px solid var(--warn);
+  background:var(--surface-2);
+  padding:.75rem .9rem;
+  border-radius:0 7px 7px 0;
+  font-size:13.5px;color:var(--ink-2);
+}
+.flag b{color:var(--ink)}
+details summary{
+  cursor:pointer;font-size:13px;color:var(--ink-2);
+  font-family:var(--font-mono);letter-spacing:.04em;
+}
+.tablewrap{overflow-x:auto;margin-top:.8rem}
+table{border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:right;padding:.3rem .55rem;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+td{font-family:var(--font-mono);color:var(--ink-2)}
+.src{font-size:12px;color:var(--ink-3);line-height:1.5;margin:0}
+.src a{color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Assisted Human Reproduction Act · germline exception · case model</p>
+    <h1>Projected Huntington's disease burden in Canada, 2026–2076</h1>
+    <p class="standfirst">An age-structured transmission model. The blue line holds the current prohibition; the orange line opens a germline exception in a given year and reaches a given share of at-risk conceptions. <strong>The gap between them is the entire policy argument</strong> — and the shape of that gap, not just its size, is what the model is for.</p>
+      <p style="margin:.9rem 0 0"><a href="how-it-works.html" style="font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:1px">HOW THE MODEL WORKS &rarr;</a></p>
+  </header>
+
+  <section class="panel panel-pad">
+    <div class="scenario-row">
+      <span class="lbl">Scenario</span>
+      <button class="preset" data-preset="status" aria-pressed="true">Status quo</button>
+      <button class="preset" data-preset="narrow" aria-pressed="false">Narrow exception</button>
+      <button class="preset" data-preset="broad" aria-pressed="false">Broad eligibility</button>
+      <button class="preset" data-preset="ceiling" aria-pressed="false">Theoretical ceiling</button>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="cov">Share of at-risk conceptions reached</label><span class="val" id="cov-v">0%</span></div>
+        <input type="range" id="cov" min="0" max="100" step="1" value="0">
+        <span class="hint">The real ceiling. Roughly half of transmissions happen before the parent is diagnosed, and uptake of predictive testing in at-risk adults runs under 20%.</span>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="eff">Per-embryo efficacy</label><span class="val" id="eff-v">90%</span></div>
+        <input type="range" id="eff" min="50" max="100" step="1" value="90">
+        <span class="hint">Share of treated embryos in which the expanded allele is corrected or silenced without a disqualifying off-target or mosaic result.</span>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="start">Policy start year</label><span class="val" id="start-v">2035</span></div>
+        <input type="range" id="start" min="2027" max="2060" step="1" value="2035">
+        <span class="hint">First birth cohort covered. Trials, counselling infrastructure and review boards all sit upstream of this date.</span>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="prev">Baseline prevalence <span style="color:var(--ink-3)">(per 100k)</span></label><span class="val" id="prev-v">13.7</span></div>
+        <input type="range" id="prev" min="5" max="20" step="0.1" value="13.7">
+        <span class="hint">Diagnosed cases per 100,000. Default is the British Columbia registry figure, the best Canadian estimate available.</span>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="denovo">New mutations, share of incidence</label><span class="val" id="denovo-v">6%</span></div>
+        <input type="range" id="denovo" min="0" max="15" step="0.5" value="6">
+        <span class="hint">Fresh expansions from intermediate alleles (27–35 CAG) in unaffected parents. No reproductive policy touches these — they set the floor.</span>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><label for="growth">Population growth</label><span class="val" id="growth-v">0.60%/yr</span></div>
+        <input type="range" id="growth" min="0" max="1.4" step="0.05" value="0.6">
+        <span class="hint">Canada 41.5M in 2026. The default tracks Statistics Canada's medium-growth projection to roughly 56M by 2076.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel panel-pad">
+    <div class="chart-head">
+      <div>
+        <h2 class="chart-title" id="ct">Canadians living with diagnosed Huntington's disease</h2>
+        <p class="chart-sub" id="cs">Absolute count, both scenarios</p>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <div class="seg" role="group" aria-label="Population measured">
+          <button data-pop="manifest" aria-pressed="true">Diagnosed cases</button>
+          <button data-pop="carriers" aria-pressed="false">All carriers</button>
+        </div>
+        <div class="seg" role="group" aria-label="Units">
+          <button data-unit="count" aria-pressed="true">Count</button>
+          <button data-unit="rate" aria-pressed="false">Per 100k</button>
+        </div>
+      </div>
+    </div>
+
+    <svg class="plot" id="plot" viewBox="0 0 780 360" role="img" aria-labelledby="ct plotdesc">
+      <desc id="plotdesc">Two projected lines from 2026 to 2076 comparing Huntington's disease burden with and without a germline editing exception.</desc>
+    </svg>
+
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--s1)"></i> Prohibition retained</span>
+      <span><i class="swatch" style="background:var(--s2)"></i> Germline exception</span>
+    </div>
+
+    <div class="scrub">
+      <div class="ctrl-head" style="margin-bottom:.35rem">
+        <label for="year" style="font-size:13px;color:var(--ink-2);font-weight:500">Scrub the year</label>
+        <span class="val" id="year-v">2076</span>
+      </div>
+      <input type="range" id="year" min="2026" max="2076" step="1" value="2076">
+
+      <div class="readout">
+        <div class="stat a"><span class="k">Prohibition retained</span><span class="v" id="r-a">—</span><span class="s" id="r-as">—</span></div>
+        <div class="stat b"><span class="k">Germline exception</span><span class="v" id="r-b">—</span><span class="s" id="r-bs">—</span></div>
+        <div class="stat"><span class="k" id="r-dk">Cases averted</span><span class="v" id="r-d">—</span><span class="s" id="r-ds">—</span></div>
+        <div class="stat"><span class="k">Births prevented, cumulative</span><span class="v" id="r-c">—</span><span class="s">expansion-carrying conceptions since policy start</span></div>
+      </div>
+    </div>
+
+    <details style="margin-top:1rem">
+      <summary>Show the numbers</summary>
+      <div class="tablewrap">
+        <table id="tbl"><thead><tr><th>Year</th><th>Population</th><th>Prohibition</th><th>Exception</th><th>Averted</th></tr></thead><tbody></tbody></table>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel panel-pad">
+    <div class="flag" id="honest">
+      <b>Read the lag before you present this.</b> An embryo edited in 2035 is not a case averted in 2035 — it is a case that would have been diagnosed around 2080. Median onset is in the mid-forties. Under every realistic setting the two diagnosed-case lines stay nearly on top of each other for the first three to four decades, and separate only at the far right of the window. Switch to <b>All carriers</b> to see the effect arrive roughly 40 years earlier. That lag is the honest finding, and owning it in Round One is stronger than being shown it in Q&amp;A.
+    </div>
+  </section>
+
+  <section class="panel panel-pad notes">
+    <div class="note">
+      <h3>How the model runs</h3>
+      <p>Carriers are tracked in single-year age cohorts from 2026 to 2076. Each year every cohort ages, dies at a background rate plus an excess hazard once symptomatic, and produces children at Canadian age-specific fertility. Each child of a carrier inherits the expansion with probability <strong>0.5</strong> — the autosomal dominant rule — and that stream is what the policy multiplies by <code>1 − coverage × efficacy</code>.</p>
+      <p>Onset is a logistic curve with median age 45, so a carrier is counted as a diagnosed case only once onset has occurred. The baseline is calibrated so prevalence per capita holds flat without intervention: absolute case counts then rise purely because the population rises, which is the comparison the case asks for.</p>
+    </div>
+    <div class="note">
+      <h3>Why no ancestry term</h3>
+      <p>Prevalence does differ between populations — about <strong>10–14 per 100,000</strong> in European-ancestry populations against under <strong>1 per 100,000</strong> in East Asian populations. That gap is a founder effect: differing background frequencies of the haplotypes that predispose to CAG expansion, laid down historically.</p>
+      <p>It is <strong>not</strong> a difference in how the allele is transmitted. Every carrier passes the expansion to half their conceptions regardless of ancestry. Building the projection on shifting racial composition would model the wrong mechanism and hand the opposing side an easy attack. The single national prevalence rate, adjustable above, carries the same information without that exposure.</p>
+    </div>
+    <div class="note">
+      <h3>What the coverage slider really means</h3>
+      <p>Your proposed amendment is narrow: autosomal dominant disease where one parent is homozygous, so that no unaffected embryo exists and PGT-M has nothing to select. Homozygosity is roughly <strong>0.3%</strong> of Huntington's cases. Set honestly, that is coverage near 1% — the <strong>Narrow exception</strong> preset — and the two lines are visually indistinguishable for the whole window.</p>
+      <p>That is not a defect in the argument. It is the argument: the amendment is a <strong>targeted response to an absolute medical necessity</strong>, not a public health program. The higher presets show what broader eligibility would buy, which is the question the panel will ask next.</p>
+    </div>
+    <div class="note">
+      <h3>The floor the model will not cross</h3>
+      <p>Even at 100% coverage and 100% efficacy, the orange line flattens rather than falling to zero. New expansions keep arising from intermediate alleles carried by parents with no family history and no reason to be screened.</p>
+      <p>Huntington's is reducible, not eliminable. Any claim that germline editing "ends" the disease is false, and the de novo slider is there so you can show exactly where the floor sits under your own assumptions.</p>
+    </div>
+  </section>
+
+  <section class="panel panel-pad">
+    <h3 style="font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .6rem;font-weight:600">Parameter sources</h3>
+    <p class="src">Prevalence 13.7/100,000 — Fisher &amp; Hayden, British Columbia population study, <i>Movement Disorders</i> 2014. · Onset distribution and full-penetrance threshold (≥40 CAG) — Caron, Wright &amp; Hayden, <i>GeneReviews</i> 2020. · Reduced-penetrance band 36–39 CAG — Kay et al., <i>Neurology</i> 2016. · Homozygosity ~0.3% — Sengupta &amp; Dasgupta, <i>Clinical Case Reports</i> 2026. · Population base and growth — Statistics Canada population projections, medium-growth scenario. · Fertility TFR 1.26 — Statistics Canada, 2023. · De novo share of incidence — expansion from intermediate alleles, standard range 5–10%.</p>
+    <p class="src" style="margin-top:.6rem;color:var(--ink-3)"><b>Status:</b> a transparent projection built on published parameters, not a validated epidemiological forecast. Every input is exposed as a slider so the sensitivity of the conclusion can be shown directly. Present it as a model, state the assumptions, and the lag finding will carry more weight than a bigger gap would.</p>
+  </section>
+
+</div>
+
+<script src="model.js"></script>
+<script>
+(function(){
+  "use strict";
+  var C = HDModel.constants;
+  var A = C.A, Y0 = C.Y0, Y1 = C.Y1, NY = C.NY;
+  var run = HDModel.run;
+
+  // --- state -------------------------------------------------------------
+  var st = {cov:0, eff:0.90, start:2035, prev:13.7, denovo:0.06, growth:0.006,
+            pop:"manifest", unit:"count", year:2076};
+  var data = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var fmt = function(n){ return Math.round(n).toLocaleString("en-CA"); };
+  var fmt1 = function(n){ return n.toFixed(1); };
+
+  // --- chart -------------------------------------------------------------
+  var W = 780, H = 360, M = {t:16, r:86, b:34, l:62};
+  var NS = "http://www.w3.org/2000/svg";
+  function el(n, attrs){
+    var e = document.createElementNS(NS, n);
+    for(var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function niceMax(v){
+    if(v <= 0) return 1;
+    var mag = Math.pow(10, Math.floor(Math.log10(v)));
+    var r = v/mag;
+    var step = r <= 1.2 ? 1.2 : r <= 1.5 ? 1.5 : r <= 2 ? 2 : r <= 2.5 ? 2.5 : r <= 3 ? 3 : r <= 4 ? 4 : r <= 5 ? 5 : r <= 6 ? 6 : r <= 8 ? 8 : 10;
+    return step*mag;
+  }
+
+  function draw(){
+    var svg = $("plot");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.appendChild(el("desc", {id:"plotdesc"})).textContent =
+      "Two projected lines from 2026 to 2076 comparing Huntington's disease burden with and without a germline editing exception.";
+
+    var key = st.pop === "manifest" ? "man" : "car";
+    var va = data.a[key].slice(), vb = data.b[key].slice();
+    if(st.unit === "rate"){
+      for(var i=0;i<va.length;i++){ va[i] = va[i]/data.pop[i]*1e5; vb[i] = vb[i]/data.pop[i]*1e5; }
+    }
+
+    var top = niceMax(Math.max.apply(null, va) * 1.08);
+    var x = function(t){ return M.l + t/(NY-1)*(W-M.l-M.r); };
+    var y = function(v){ return H-M.b - (v/top)*(H-M.t-M.b); };
+
+    // grid + y labels
+    var ticks = 5, gi;
+    for(gi=0; gi<=ticks; gi++){
+      var tv = top*gi/ticks, ty = y(tv);
+      svg.appendChild(el("line", {x1:M.l, x2:W-M.r, y1:ty, y2:ty,
+        stroke:"var(--line)", "stroke-width": gi===0 ? 1.5 : 1}));
+      var lbl = el("text", {x:M.l-10, y:ty+4, "text-anchor":"end", fill:"var(--ink-3)",
+        "font-size":11, "font-family":"var(--font-mono)"});
+      lbl.textContent = st.unit === "rate" ? fmt1(tv) : (top >= 10000 ? fmt(tv/1000)+"k" : fmt(tv));
+      svg.appendChild(lbl);
+    }
+    var ax = el("text", {x:M.l-10, y:M.t-2, "text-anchor":"end", fill:"var(--ink-3)",
+      "font-size":10, "font-family":"var(--font-mono)"});
+    ax.textContent = st.unit === "rate" ? "per 100k" : "people";
+    svg.appendChild(ax);
+
+    // x labels
+    [2026,2036,2046,2056,2066,2076].forEach(function(yr){
+      var t = yr-Y0;
+      var e = el("text", {x:x(t), y:H-M.b+19, "text-anchor":"middle", fill:"var(--ink-3)",
+        "font-size":11, "font-family":"var(--font-mono)"});
+      e.textContent = yr;
+      svg.appendChild(e);
+    });
+
+    // policy start marker
+    if(st.cov > 0 && st.start <= Y1){
+      var px = x(st.start-Y0);
+      svg.appendChild(el("line", {x1:px, x2:px, y1:M.t, y2:H-M.b,
+        stroke:"var(--ink-3)", "stroke-width":1, "stroke-dasharray":"3 3", opacity:.7}));
+      var pl = el("text", {x:px+5, y:M.t+11, fill:"var(--ink-3)", "font-size":10,
+        "font-family":"var(--font-mono)"});
+      pl.textContent = "policy " + st.start;
+      svg.appendChild(pl);
+    }
+
+    function path(v){
+      var d = "";
+      for(var t=0;t<v.length;t++) d += (t?"L":"M") + x(t).toFixed(2) + " " + y(v[t]).toFixed(2);
+      return d;
+    }
+    // orange first so blue reads on top where they coincide
+    svg.appendChild(el("path", {d:path(vb), fill:"none", stroke:"var(--s2)",
+      "stroke-width":2.5, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+    svg.appendChild(el("path", {d:path(va), fill:"none", stroke:"var(--s1)",
+      "stroke-width":2, "stroke-linejoin":"round", "stroke-linecap":"round",
+      "stroke-dasharray": st.cov>0 ? "none" : "none"}));
+
+    // end labels, nudged apart when they collide
+    var ya = y(va[NY-1]), yb = y(vb[NY-1]);
+    if(Math.abs(ya-yb) < 13){ var mid=(ya+yb)/2; ya = mid-7; yb = mid+7; }
+    function endLabel(yy, txt, col){
+      var e = el("text", {x:W-M.r+9, y:yy+4, fill:col, "font-size":11.5,
+        "font-family":"var(--font-mono)", "font-weight":600});
+      e.textContent = txt;
+      svg.appendChild(e);
+    }
+    var f = st.unit === "rate" ? fmt1 : fmt;
+    endLabel(ya, f(va[NY-1]), "var(--s1)");
+    endLabel(yb, f(vb[NY-1]), "var(--s2)");
+
+    // endpoint dots with a surface ring
+    [[va, "var(--s1)", y(va[NY-1])], [vb, "var(--s2)", y(vb[NY-1])]].forEach(function(p){
+      svg.appendChild(el("circle", {cx:x(NY-1), cy:p[2], r:4.5, fill:p[1],
+        stroke:"var(--surface)", "stroke-width":2}));
+    });
+
+    // scrub marker
+    var ti = st.year - Y0;
+    var mx = x(ti);
+    svg.appendChild(el("line", {x1:mx, x2:mx, y1:M.t, y2:H-M.b,
+      stroke:"var(--ink-3)", "stroke-width":1, opacity:.45}));
+    [[va[ti], "var(--s1)"], [vb[ti], "var(--s2)"]].forEach(function(p){
+      svg.appendChild(el("circle", {cx:mx, cy:y(p[0]), r:4, fill:p[1],
+        stroke:"var(--surface)", "stroke-width":2}));
+    });
+  }
+
+  // --- render ------------------------------------------------------------
+  function render(){
+    data = run(st);
+    var key = st.pop === "manifest" ? "man" : "car";
+    var ti = st.year - Y0;
+    var a = data.a[key][ti], b = data.b[key][ti], pop = data.pop[ti];
+
+    $("ct").textContent = st.pop === "manifest"
+      ? "Canadians living with diagnosed Huntington's disease"
+      : "Canadians carrying an HTT expansion, diagnosed or not";
+    $("cs").textContent = (st.unit === "count" ? "Absolute count" : "Rate per 100,000 people")
+      + ", both scenarios · " + Y0 + "–" + Y1;
+
+    var f = st.unit === "rate" ? fmt1 : fmt;
+    var conv = function(v){ return st.unit === "rate" ? v/pop*1e5 : v; };
+
+    $("r-a").textContent = f(conv(a));
+    $("r-as").textContent = st.unit === "rate"
+      ? "per 100k in " + st.year
+      : (a/pop*1e5).toFixed(1) + " per 100k in " + st.year;
+    $("r-b").textContent = f(conv(b));
+    $("r-bs").textContent = st.cov === 0 ? "no exception in force"
+      : (b/pop*1e5).toFixed(1) + " per 100k in " + st.year;
+    var d = a-b;
+    $("r-dk").textContent = st.pop === "manifest" ? "Cases averted" : "Carriers averted";
+    $("r-d").textContent = f(conv(d));
+    $("r-ds").textContent = a > 0 ? (d/a*100).toFixed(1) + "% lower in " + st.year : "—";
+    $("r-c").textContent = fmt(data.prevented[ti]);
+
+    // table
+    var tb = $("tbl").querySelector("tbody");
+    tb.innerHTML = "";
+    for(var yr=Y0; yr<=Y1; yr+=5){
+      var t = yr-Y0;
+      var row = document.createElement("tr");
+      var av = data.a[key][t], bv = data.b[key][t];
+      row.innerHTML = "<td>"+yr+"</td><td>"+(data.pop[t]/1e6).toFixed(1)+"M</td><td>"+
+        fmt(av)+"</td><td>"+fmt(bv)+"</td><td>"+fmt(av-bv)+"</td>";
+      tb.appendChild(row);
+    }
+    draw();
+  }
+
+  // --- wiring ------------------------------------------------------------
+  function bind(id, apply, show){
+    var inp = $(id);
+    inp.addEventListener("input", function(){
+      apply(parseFloat(inp.value));
+      $(id+"-v").textContent = show(parseFloat(inp.value));
+      syncPresets();
+      render();
+    });
+  }
+  bind("cov",   function(v){ st.cov = v/100; },    function(v){ return v+"%"; });
+  bind("eff",   function(v){ st.eff = v/100; },    function(v){ return v+"%"; });
+  bind("start", function(v){ st.start = v; },      function(v){ return v; });
+  bind("prev",  function(v){ st.prev = v; },       function(v){ return v.toFixed(1); });
+  bind("denovo",function(v){ st.denovo = v/100; }, function(v){ return v+"%"; });
+  bind("growth",function(v){ st.growth = v/100; }, function(v){ return v.toFixed(2)+"%/yr"; });
+
+  $("year").addEventListener("input", function(){
+    st.year = parseInt(this.value,10);
+    $("year-v").textContent = st.year;
+    render();
+  });
+
+  var PRESETS = {
+    status:  {cov:0,   eff:90, start:2035},
+    narrow:  {cov:1,   eff:90, start:2035},
+    broad:   {cov:45,  eff:90, start:2035},
+    ceiling: {cov:100, eff:100, start:2027}
+  };
+  function syncPresets(){
+    var keys = Object.keys(PRESETS);
+    for(var i=0;i<keys.length;i++){
+      var p = PRESETS[keys[i]];
+      var match = Math.round(st.cov*100) === p.cov && Math.round(st.eff*100) === p.eff && st.start === p.start;
+      document.querySelector('[data-preset="'+keys[i]+'"]').setAttribute("aria-pressed", match ? "true" : "false");
+    }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function(btn){
+    btn.addEventListener("click", function(){
+      var p = PRESETS[btn.dataset.preset];
+      $("cov").value = p.cov;   st.cov = p.cov/100;   $("cov-v").textContent = p.cov+"%";
+      $("eff").value = p.eff;   st.eff = p.eff/100;   $("eff-v").textContent = p.eff+"%";
+      $("start").value = p.start; st.start = p.start; $("start-v").textContent = p.start;
+      syncPresets();
+      render();
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-pop]"), function(btn){
+    btn.addEventListener("click", function(){
+      st.pop = btn.dataset.pop;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-pop]"), function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-unit]"), function(btn){
+    btn.addEventListener("click", function(){
+      st.unit = btn.dataset.unit;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-unit]"), function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
