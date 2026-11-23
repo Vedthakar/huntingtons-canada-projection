@@ -90,6 +90,73 @@ var mono = true, prev = Infinity;
 });
 check("more coverage never increases carriers", mono);
 
+// ---- probabilistic sensitivity analysis -------------------------------
+var mcOpts = Object.assign({}, base, HD.presets.broad);
+var mc = HD.montecarlo(mcOpts, 500, 20260101);
+function p1(x) { return (x * 100).toFixed(1) + "%"; }
+
+console.log("\nProbabilistic sensitivity analysis (" + mc.n + " draws, broad eligibility)");
+console.log("  2076 carrier reduction    " + p1(mc.reductionCar2076.mid) +
+            "   [90% CI " + p1(mc.reductionCar2076.lo) + " – " + p1(mc.reductionCar2076.hi) + "]");
+console.log("  2076 diagnosed reduction  " + p1(mc.reductionMan2076.mid) +
+            "   [90% CI " + p1(mc.reductionMan2076.lo) + " – " + p1(mc.reductionMan2076.hi) + "]");
+console.log("  2076 cases averted        " + n(mc.avertedCases2076.mid) +
+            "   [" + n(mc.avertedCases2076.lo) + " – " + n(mc.avertedCases2076.hi) + "]");
+console.log("  2076 baseline cases       " + n(mc.bands.aMan.mid[50]) +
+            "   [" + n(mc.bands.aMan.lo[50]) + " – " + n(mc.bands.aMan.hi[50]) + "]");
+console.log("  top driver                " + mc.drivers[0].param +
+            " (rho " + mc.drivers[0].rho.toFixed(2) + ")");
+console.log("");
+
+check("the interval brackets its own point estimate",
+      mc.reductionCar2076.lo < mc.reductionCar2076.mid &&
+      mc.reductionCar2076.mid < mc.reductionCar2076.hi);
+
+check("bands are ordered at every year",
+      mc.years.every(function (_, t) {
+        return mc.bands.aMan.lo[t] <= mc.bands.aMan.mid[t] &&
+               mc.bands.aMan.mid[t] <= mc.bands.aMan.hi[t] &&
+               mc.bands.bCar.lo[t] <= mc.bands.bCar.mid[t] &&
+               mc.bands.bCar.mid[t] <= mc.bands.bCar.hi[t];
+      }));
+
+check("the deterministic run falls inside the band",
+      broad.a.man[50] >= mc.bands.aMan.lo[50] && broad.a.man[50] <= mc.bands.aMan.hi[50],
+      "point " + n(broad.a.man[50]) + " within " +
+      n(mc.bands.aMan.lo[50]) + "–" + n(mc.bands.aMan.hi[50]));
+
+// This is the argument the PSA exists to make: the absolute level is
+// uncertain, the proportional policy effect is much less so, because both
+// scenarios share the same draws and most of the uncertainty cancels.
+var levelSpread = (mc.bands.aMan.hi[50] - mc.bands.aMan.lo[50]) / mc.bands.aMan.mid[50];
+var effectSpread = (mc.reductionCar2076.hi - mc.reductionCar2076.lo) / mc.reductionCar2076.mid;
+check("the effect ratio is better determined than the level",
+      effectSpread < levelSpread,
+      "level +/-" + p1(levelSpread / 2) + " vs effect +/-" + p1(effectSpread / 2));
+
+// The strongest honest form of the claim: not an average, a floor over the
+// whole sample. If this ever fails, the headline sentence must be softened.
+check("every single draw shows a substantial reduction",
+      mc.reductionCar2076.min > 0.20,
+      "worst of " + mc.n + " draws = " + p1(mc.reductionCar2076.min) +
+      ", best = " + p1(mc.reductionCar2076.max));
+
+check("efficacy is the dominant driver", mc.drivers[0].param === "eff",
+      "rho = " + mc.drivers[0].rho.toFixed(2));
+check("more new mutations means less reducible disease",
+      mc.drivers.filter(function (d) { return d.param === "denovo"; })[0].rho < 0,
+      "denovo rho = " + mc.drivers.filter(function (d) { return d.param === "denovo"; })[0].rho.toFixed(2));
+
+// A result that moves when the seed changes is a result that needed more
+// draws. 500 should hold the median to well inside a percentage point.
+var mc2 = HD.montecarlo(mcOpts, 500, 777001);
+var drift = Math.abs(mc2.reductionCar2076.mid - mc.reductionCar2076.mid);
+check("the estimate is stable across seeds", drift < 0.01,
+      "median moves " + p1(drift) + " on a different seed");
+
+check("zero coverage yields no modelled reduction",
+      HD.montecarlo({ cov: 0, start: 2035 }, 120, 4242).reductionCar2076.hi < 1e-9);
+
 // ---- narrow exception, the team's actual proposal ---------------------
 var narrow = HD.run(Object.assign({}, base, HD.presets.narrow));
 console.log("\nNarrow exception (homozygous-parent cases only, ~1% coverage)");

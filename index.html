@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Huntington's in Canada, 2026–2076</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -209,6 +210,62 @@ svg.plot{display:block;width:100%;height:auto;overflow:visible}
 }
 .stat .s{font-size:11.5px;color:var(--ink-3);display:block}
 
+/* ---- probabilistic sensitivity analysis ---- */
+.psa-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(196px,1fr));
+  gap:.8rem;
+  margin-bottom:1.3rem;
+}
+.iv-card{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:.65rem .75rem;
+  min-width:0;
+}
+.iv-card .k{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:.15rem;
+}
+.iv-card .v{
+  font-family:var(--font-mono);font-size:1.4rem;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;display:block;line-height:1.2;
+}
+.iv-card .s{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--ink-2);display:block;
+  font-variant-numeric:tabular-nums;margin-top:.1rem;
+}
+.minihead{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);margin:0;font-weight:600;
+}
+/* Tornado rows: a centred zero line with bars running left (negative
+   correlation) or right (positive). Length is |rho|, so the eye reads
+   importance and the side reads direction. */
+.tornado{display:flex;flex-direction:column;gap:.3rem}
+.trow{display:grid;grid-template-columns:7.4rem 1fr 3.1rem;align-items:center;gap:.5rem}
+.trow .tname{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--ink-2);
+  text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.trow .ttrack{
+  position:relative;height:15px;background:var(--surface-2);
+  border-radius:3px;overflow:hidden;
+}
+.trow .ttrack::before{
+  content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line);
+}
+.trow .tbar{
+  position:absolute;top:2px;bottom:2px;border-radius:2px;
+}
+.trow .tval{
+  font-family:var(--font-mono);font-size:11px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;text-align:right;
+}
+.trow.lead .tname{color:var(--ink);font-weight:600}
+.trow.lead .tval{color:var(--ink-2)}
+
 /* ---- notes ---- */
 .notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:1.15rem 1.6rem}
 .note h3{
@@ -309,6 +366,10 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
           <button data-unit="count" aria-pressed="true">Count</button>
           <button data-unit="rate" aria-pressed="false">Per 100k</button>
         </div>
+        <div class="seg" role="group" aria-label="Uncertainty bands">
+          <button data-band="off" aria-pressed="true">Point estimate</button>
+          <button data-band="on" aria-pressed="false">90% interval</button>
+        </div>
       </div>
     </div>
 
@@ -320,6 +381,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       <span><i class="swatch" style="background:var(--s1)"></i> Prohibition retained</span>
       <span><i class="swatch" style="background:var(--s2)"></i> Germline exception</span>
     </div>
+    <p class="chart-sub" id="band-note" hidden style="margin-top:.5rem">Shaded ribbons are 90% intervals from <span id="band-n">500</span> Monte Carlo draws over the nine uncertain inputs. While they are shown, the prevalence, efficacy, new-mutation and growth sliders are superseded by their full distributions — coverage and start year still apply, because those are the policy rather than a fact about the world.</p>
 
     <div class="scrub">
       <div class="ctrl-head" style="margin-bottom:.35rem">
@@ -342,6 +404,42 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
         <table id="tbl"><thead><tr><th>Year</th><th>Population</th><th>Prohibition</th><th>Exception</th><th>Averted</th></tr></thead><tbody></tbody></table>
       </div>
     </details>
+  </section>
+
+  <section class="panel panel-pad" id="psa">
+    <div class="chart-head" style="margin-bottom:.9rem">
+      <div>
+        <h2 class="chart-title">Probabilistic sensitivity analysis</h2>
+        <p class="chart-sub">Nine uncertain inputs resampled <span id="psa-n">400</span>× and pushed back through the same mechanism</p>
+      </div>
+      <button class="preset" id="psa-run" style="align-self:start">Re-run with a new seed</button>
+    </div>
+
+    <div class="psa-grid">
+      <div class="iv-card">
+        <span class="k">Carrier reduction by 2076</span>
+        <span class="v" id="iv-car">—</span>
+        <span class="s" id="iv-car-s">—</span>
+      </div>
+      <div class="iv-card">
+        <span class="k">Diagnosed-case reduction by 2076</span>
+        <span class="v" id="iv-man">—</span>
+        <span class="s" id="iv-man-s">—</span>
+      </div>
+      <div class="iv-card">
+        <span class="k">Cases averted in 2076</span>
+        <span class="v" id="iv-av">—</span>
+        <span class="s" id="iv-av-s">—</span>
+      </div>
+    </div>
+
+    <h3 class="minihead">What the answer actually depends on</h3>
+    <p class="chart-sub" style="margin:.1rem 0 .7rem">Rank correlation between each sampled input and the 2076 carrier reduction. The top row is the number worth arguing about; the bottom rows are noise.</p>
+    <div id="tornado" class="tornado"></div>
+
+    <div class="flag" style="margin-top:1rem">
+      <b>The interval is the point.</b> The <em>level</em> of the baseline is genuinely uncertain — the 2076 case count spans a wide range because prevalence, growth and survival all compound. The <em>reduction</em> is far tighter, because both scenarios inherit the same uncertain inputs and most of it cancels. If a judge attacks your absolute numbers they are right to; if they attack the proportional effect, this is the answer.
+    </div>
   </section>
 
   <section class="panel panel-pad">
@@ -391,8 +489,28 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
 
   // --- state -------------------------------------------------------------
   var st = {cov:0, eff:0.90, start:2035, prev:13.7, denovo:0.06, growth:0.006,
-            pop:"manifest", unit:"count", year:2076};
+            pop:"manifest", unit:"count", year:2076, band:"off"};
   var data = null;
+
+  /* --- probabilistic sensitivity analysis -------------------------------
+     The Monte Carlo layer samples every uncertain input from its stated
+     prior, so it deliberately ignores the prevalence / efficacy / growth /
+     de novo sliders: those become distributions rather than settings. It
+     does respect coverage and start year, because those are the policy
+     being argued for rather than facts about the world.
+     Results are cached per (coverage, start, seed) — a run is ~70ms, but
+     the year scrubber calls render() continuously. */
+  var N_DRAWS = 500;
+  var mcSeed = 20260101;
+  var mcCache = {};
+  function psa(){
+    var k = st.cov + "|" + st.start + "|" + mcSeed;
+    if(!mcCache[k]){
+      mcCache[k] = HDModel.montecarlo(
+        {cov:st.cov, start:st.start}, N_DRAWS, mcSeed);
+    }
+    return mcCache[k];
+  }
 
   var $ = function(id){ return document.getElementById(id); };
   var fmt = function(n){ return Math.round(n).toLocaleString("en-CA"); };
@@ -427,7 +545,28 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       for(var i=0;i<va.length;i++){ va[i] = va[i]/data.pop[i]*1e5; vb[i] = vb[i]/data.pop[i]*1e5; }
     }
 
-    var top = niceMax(Math.max.apply(null, va) * 1.08);
+    // Uncertainty bands, when requested. Converted to the displayed unit
+    // and folded into the axis maximum so the band is never clipped.
+    var bands = null, peak = Math.max.apply(null, va);
+    if(st.band === "on"){
+      var mc = psa();
+      var bk = st.pop === "manifest" ? ["aMan","bMan"] : ["aCar","bCar"];
+      bands = [
+        {b:mc.bands[bk[0]], col:"var(--s1)"},
+        {b:mc.bands[bk[1]], col:"var(--s2)"}
+      ];
+      bands.forEach(function(s){
+        var lo = s.b.lo.slice(), hi = s.b.hi.slice();
+        if(st.unit === "rate"){
+          for(var j=0;j<lo.length;j++){ lo[j] = lo[j]/data.pop[j]*1e5; hi[j] = hi[j]/data.pop[j]*1e5; }
+        }
+        s.lo = lo; s.hi = hi;
+        var m = Math.max.apply(null, hi);
+        if(m > peak) peak = m;
+      });
+    }
+
+    var top = niceMax(peak * 1.08);
     var x = function(t){ return M.l + t/(NY-1)*(W-M.l-M.r); };
     var y = function(v){ return H-M.b - (v/top)*(H-M.t-M.b); };
 
@@ -455,6 +594,24 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       e.textContent = yr;
       svg.appendChild(e);
     });
+
+    // uncertainty ribbons, drawn behind the lines
+    if(bands){
+      bands.forEach(function(s){
+        var d = "", j;
+        for(j=0;j<s.hi.length;j++) d += (j?"L":"M") + x(j).toFixed(2) + " " + y(s.hi[j]).toFixed(2);
+        for(j=s.lo.length-1;j>=0;j--) d += "L" + x(j).toFixed(2) + " " + y(s.lo[j]).toFixed(2);
+        svg.appendChild(el("path", {d:d+"Z", fill:s.col, opacity:.15, stroke:"none"}));
+        // a hairline on each edge so the extent of the interval is readable
+        // where two ribbons overlap and the fills merge
+        var de = "";
+        for(j=0;j<s.hi.length;j++) de += (j?"L":"M") + x(j).toFixed(2) + " " + y(s.hi[j]).toFixed(2);
+        svg.appendChild(el("path", {d:de, fill:"none", stroke:s.col, "stroke-width":1, opacity:.5}));
+        de = "";
+        for(j=0;j<s.lo.length;j++) de += (j?"L":"M") + x(j).toFixed(2) + " " + y(s.lo[j]).toFixed(2);
+        svg.appendChild(el("path", {d:de, fill:"none", stroke:s.col, "stroke-width":1, opacity:.5}));
+      });
+    }
 
     // policy start marker
     if(st.cov > 0 && st.start <= Y1){
@@ -550,6 +707,57 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       tb.appendChild(row);
     }
     draw();
+    renderPSA();
+  }
+
+  // --- probabilistic sensitivity readout ---------------------------------
+  var PNAME = {
+    prev: "prevalence", denovo: "new mutations", growth: "pop. growth",
+    eff: "efficacy", onsetMedian: "onset median", onsetScale: "onset spread",
+    hdHaz: "HD survival", piPen: "penetrance", tfr: "fertility"
+  };
+
+  function renderPSA(){
+    var mc = psa();
+    $("psa-n").textContent = mc.n;
+    $("band-n").textContent = mc.n;
+
+    var pc = function(v){ return (v*100).toFixed(1) + "%"; };
+
+    if(st.cov === 0){
+      ["iv-car","iv-man","iv-av"].forEach(function(id){ $(id).textContent = "—"; });
+      $("iv-car-s").textContent = "no exception in force";
+      $("iv-man-s").textContent = "set coverage above zero";
+      $("iv-av-s").textContent = "—";
+    } else {
+      $("iv-car").textContent = pc(mc.reductionCar2076.mid);
+      $("iv-car-s").textContent = "90% CI " + pc(mc.reductionCar2076.lo) + " – " + pc(mc.reductionCar2076.hi);
+      $("iv-man").textContent = pc(mc.reductionMan2076.mid);
+      $("iv-man-s").textContent = "90% CI " + pc(mc.reductionMan2076.lo) + " – " + pc(mc.reductionMan2076.hi);
+      $("iv-av").textContent = fmt(mc.avertedCases2076.mid);
+      $("iv-av-s").textContent = "90% CI " + fmt(mc.avertedCases2076.lo) + " – " + fmt(mc.avertedCases2076.hi);
+    }
+
+    // tornado
+    var box = $("tornado");
+    box.innerHTML = "";
+    var maxAbs = 0;
+    mc.drivers.forEach(function(d){ if(Math.abs(d.rho) > maxAbs) maxAbs = Math.abs(d.rho); });
+    if(maxAbs < 0.05) maxAbs = 0.05;
+
+    mc.drivers.forEach(function(d, i){
+      var row = document.createElement("div");
+      row.className = "trow" + (i === 0 ? " lead" : "");
+      var w = Math.abs(d.rho)/maxAbs * 50;        // percent of half-track
+      var pos = d.rho >= 0;
+      row.innerHTML =
+        '<span class="tname">' + PNAME[d.param] + '</span>' +
+        '<span class="ttrack"><span class="tbar" style="' +
+          (pos ? "left:50%;" : "right:50%;") + "width:" + w.toFixed(1) + "%;" +
+          "background:" + (pos ? "var(--s2)" : "var(--s1)") + '"></span></span>' +
+        '<span class="tval">' + (d.rho >= 0 ? "+" : "−") + Math.abs(d.rho).toFixed(2) + '</span>';
+      box.appendChild(row);
+    });
   }
 
   // --- wiring ------------------------------------------------------------
@@ -617,6 +825,25 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       });
       render();
     });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-band]"), function(btn){
+    btn.addEventListener("click", function(){
+      st.band = btn.dataset.band;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-band]"), function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      $("band-note").hidden = st.band !== "on";
+      render();
+    });
+  });
+
+  // A new seed redraws the interval from a fresh sample. If the bands and
+  // the numbers barely move, the sample size is adequate — which is the
+  // point of exposing the button rather than hiding the seed.
+  $("psa-run").addEventListener("click", function(){
+    mcSeed = (mcSeed * 1103515245 + 12345) >>> 8;
+    render();
   });
 
   render();

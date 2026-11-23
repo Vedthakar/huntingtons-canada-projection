@@ -294,7 +294,35 @@ births<sub>inherited</sub> =  births<sub>required</sub> − births<sub>de novo</
     <p class="figcap">The fertility scale is then back-solved so the age structure reproduces that inherited figure. Verified numerically: the baseline holds 13.70 per 100,000 in both 2026 and 2076, with the absolute count rising 5,686 → 7,668 as the population grows 41.5M → 56.0M.</p>
   </section>
 
-  <!-- ============ 5. NOT ML ============ -->
+  <!-- ============ 5. UNCERTAINTY ============ -->
+  <section class="panel">
+    <p class="step">Uncertainty</p>
+    <h2>How a deterministic model earns an interval</h2>
+    <p>One run of the model is one guess about nine uncertain numbers. Quoting its output to four digits would be quoting your own rounding error. So the model is run <strong>500 times</strong>, each time drawing every uncertain input from a stated range, and the results are reported as percentiles across those runs.</p>
+    <p>This is a <strong>probabilistic sensitivity analysis</strong>, and it is worth being precise about what it is not. Nothing is learned from data. No parameter is fitted. The mechanism is identical in every draw — only the inputs move, and they move over ranges taken from the literature and written down in <code>model.js</code> so they can be argued with.</p>
+
+    <svg class="fig" id="f-fan" viewBox="0 0 880 300" style="margin:1.1rem 0 0" role="img" aria-label="Fan chart showing 90% uncertainty intervals around both scenarios from 2026 to 2076"></svg>
+    <p class="figcap" id="fan-cap">Plotted live from 500 draws under broad eligibility.</p>
+
+    <div class="grid3" style="margin-top:1.4rem">
+      <div class="mini">
+        <h3>The level is uncertain</h3>
+        <p>The 2076 baseline case count spans roughly <strong id="u-lvl">—</strong>. Prevalence, growth and survival all compound over fifty years, and nothing can make that narrow. If a judge attacks your absolute numbers, they are right to.</p>
+      </div>
+      <div class="mini">
+        <h3>The effect is not</h3>
+        <p>The 2076 carrier reduction lands at <strong id="u-eff">—</strong>. Both scenarios inherit the <em>same</em> draw, so almost all of that shared uncertainty cancels in the ratio. This is why the argument should be made in percentages, not counts.</p>
+      </div>
+      <div class="mini">
+        <h3>One input dominates</h3>
+        <p>Rank-correlating each input against the outcome ranks what actually matters. <strong>Editing efficacy</strong> leads by a wide margin (ρ ≈ 0.89); the de novo share is next and runs negative, because new mutations are the part no policy can reach.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:1.2rem">The practical consequence for the deck: <strong>lead with the proportional reduction and its interval, not with a case count.</strong> A count invites an argument about prevalence estimates that you cannot win and do not need. The ratio is the robust quantity, and saying so first demonstrates you know which is which.</p>
+  </section>
+
+  <!-- ============ 6. NOT ML ============ -->
   <section class="panel">
     <p class="step">A question that will come up</p>
     <h2>This is not a machine learning model, deliberately</h2>
@@ -307,7 +335,7 @@ births<sub>inherited</sub> =  births<sub>required</sub> − births<sub>de novo</
         <thead><tr><th>What a judge might ask</th><th>The answer</th></tr></thead>
         <tbody>
           <tr><td>"Did you train this?"</td><td>No. It is a compartmental cohort model. Every parameter is published and cited; nothing is estimated from data we collected.</td></tr>
-          <tr><td>"Where's your confidence interval?"</td><td>There isn't one, because it is deterministic. Uncertainty is handled by exposing every input as a slider so you can test any assumption live.</td></tr>
+          <tr><td>"Where's your confidence interval?"</td><td>In the tool — switch the chart to <strong>90% interval</strong>. Nine uncertain inputs are resampled 500 times and pushed back through the same mechanism, which is how a deterministic model earns an interval without pretending to have been fitted to data.</td></tr>
           <tr><td>"Isn't 50 years too far to project?"</td><td>Yes, as a forecast. It isn't one. It is a comparison of two scenarios under identical assumptions, where the assumptions cancel and only the policy differs.</td></tr>
           <tr><td>"Why no ancestry term?"</td><td>Transmission is 0.5 regardless of ancestry. The prevalence gap between populations is a founder effect in haplotype frequency, not a difference in inheritance.</td></tr>
         </tbody>
@@ -325,6 +353,7 @@ births<sub>inherited</sub> =  births<sub>required</sub> − births<sub>de novo</
       <li><strong>It treats efficacy as constant over 50 years.</strong> Realistically it would improve. Holding it flat is the conservative choice.</li>
       <li><strong>It ignores anticipation.</strong> CAG repeats tend to lengthen across generations, especially on paternal transmission, which shifts onset earlier in successive generations. Including it would slightly worsen the no-policy line.</li>
       <li><strong>It does not model reduced-penetrance alleles separately.</strong> The 36–39 CAG band is folded into a single penetrance constant of 0.95.</li>
+      <li><strong>The uncertainty ranges are judgements, not measurements.</strong> The intervals are only as good as the priors fed in, and those were chosen by reading the literature rather than derived from it. They are written out explicitly in <code>model.js</code> so a critic can disagree with a specific number instead of with "the model". The draws are also independent across parameters, though fertility and population growth are really linked.</li>
       <li><strong>It says nothing about whether the policy is right.</strong> It quantifies one consequence. The ethical argument is a separate job.</li>
     </ul>
     <p style="margin-top:1rem">Naming these yourself is worth more than hoping nobody asks. A team that states its own limits reads as competent; a team that gets them extracted in Q&amp;A reads as having oversold.</p>
@@ -401,6 +430,90 @@ births<sub>inherited</sub> =  births<sub>required</sub> − births<sub>de novo</
     curve("f-mort",  s.mortality, "var(--ink-2)", "0.55", "Gompertz");
     curve("f-fert",  s.fertility, "var(--s1)", "peak", "TFR 1.26");
   }
+
+  // --- the fan chart ----------------------------------------------------
+  // Both scenarios as 90% ribbons with their medians, so the reader can see
+  // directly that the two ribbons overlap heavily in level while the gap
+  // between the medians is consistent across the whole distribution.
+  (function(){
+    var svg=document.getElementById("f-fan");
+    if(!svg||!window.HDModel) return;
+
+    var mc=HDModel.montecarlo({cov:0.45,start:2035}, 500, 20260101);
+    var W=880,H=300,M={t:18,r:112,b:30,l:62};
+    var NY=mc.years.length, Y0=mc.years[0];
+
+    var top=0;
+    ["aCar","bCar"].forEach(function(k){
+      for(var i=0;i<NY;i++) if(mc.bands[k].hi[i]>top) top=mc.bands[k].hi[i];
+    });
+    top=Math.ceil(top/10000)*10000;
+
+    var x=function(t){return M.l+t/(NY-1)*(W-M.l-M.r);};
+    var y=function(v){return H-M.b-(v/top)*(H-M.t-M.b);};
+
+    // grid
+    for(var gi=0;gi<=4;gi++){
+      var tv=top*gi/4, ty=y(tv);
+      svg.appendChild(el("line",{x1:M.l,x2:W-M.r,y1:ty,y2:ty,
+        stroke:"var(--line)","stroke-width":gi===0?1.4:1}));
+      var lb=el("text",{x:M.l-9,y:ty+4,"text-anchor":"end","font-size":10.5,
+        fill:"var(--ink-3)","font-family":"var(--font-mono)"});
+      lb.textContent=(tv/1000).toFixed(0)+"k"; svg.appendChild(lb);
+    }
+    [2026,2041,2056,2076].forEach(function(yr){
+      var t=el("text",{x:x(yr-Y0),y:H-M.b+17,"text-anchor":"middle","font-size":10.5,
+        fill:"var(--ink-3)","font-family":"var(--font-mono)"});
+      t.textContent=yr; svg.appendChild(t);
+    });
+    var yl=el("text",{x:M.l-9,y:M.t-3,"text-anchor":"end","font-size":9.5,
+      fill:"var(--ink-3)","font-family":"var(--font-mono)"});
+    yl.textContent="carriers"; svg.appendChild(yl);
+
+    // policy start
+    var px=x(2035-Y0);
+    svg.appendChild(el("line",{x1:px,x2:px,y1:M.t,y2:H-M.b,stroke:"var(--ink-3)",
+      "stroke-width":1,"stroke-dasharray":"3 3",opacity:.65}));
+    var pl=el("text",{x:px+5,y:M.t+10,fill:"var(--ink-3)","font-size":9.5,
+      "font-family":"var(--font-mono)"});
+    pl.textContent="policy 2035"; svg.appendChild(pl);
+
+    [["aCar","var(--s1)","prohibition"],["bCar","var(--s2)","exception"]].forEach(function(p){
+      var b=mc.bands[p[0]], d="", i;
+      for(i=0;i<NY;i++) d+=(i?"L":"M")+x(i).toFixed(1)+" "+y(b.hi[i]).toFixed(1);
+      for(i=NY-1;i>=0;i--) d+="L"+x(i).toFixed(1)+" "+y(b.lo[i]).toFixed(1);
+      svg.appendChild(el("path",{d:d+"Z",fill:p[1],opacity:.16}));
+
+      var dm="";
+      for(i=0;i<NY;i++) dm+=(i?"L":"M")+x(i).toFixed(1)+" "+y(b.mid[i]).toFixed(1);
+      svg.appendChild(el("path",{d:dm,fill:"none",stroke:p[1],"stroke-width":2.2,
+        "stroke-linejoin":"round","stroke-linecap":"round"}));
+
+      var lab=el("text",{x:W-M.r+8,y:y(b.mid[NY-1])+4,fill:p[1],"font-size":11,
+        "font-family":"var(--font-mono)","font-weight":600});
+      lab.textContent=p[2]; svg.appendChild(lab);
+      var lab2=el("text",{x:W-M.r+8,y:y(b.mid[NY-1])+17,fill:"var(--ink-3)","font-size":9.5,
+        "font-family":"var(--font-mono)"});
+      lab2.textContent=Math.round(b.mid[NY-1]).toLocaleString("en-CA");
+      svg.appendChild(lab2);
+    });
+
+    // fill in the prose figures from the same run
+    function pc(v){return (v*100).toFixed(0)+"%";}
+    var L=NY-1;
+    var lvl=document.getElementById("u-lvl");
+    if(lvl) lvl.textContent=Math.round(mc.bands.aMan.lo[L]).toLocaleString("en-CA")+
+      " to "+Math.round(mc.bands.aMan.hi[L]).toLocaleString("en-CA")+" cases";
+    var eff=document.getElementById("u-eff");
+    if(eff) eff.textContent=pc(mc.reductionCar2076.mid)+", 90% CI "+
+      pc(mc.reductionCar2076.lo)+" to "+pc(mc.reductionCar2076.hi);
+    var cap=document.getElementById("fan-cap");
+    if(cap) cap.textContent="All carriers, 45% coverage from 2035. Shaded ribbons are 90% "+
+      "intervals across "+mc.n+" draws; solid lines are the medians. The ribbons overlap heavily, "+
+      "because the level is genuinely uncertain — yet every one of the "+mc.n+" draws produced a "+
+      "carrier reduction between "+pc(mc.reductionCar2076.min)+" and "+pc(mc.reductionCar2076.max)+
+      ". That is the claim worth making: not how many, but how much less.";
+  })();
 })();
 </script>
 </body>
