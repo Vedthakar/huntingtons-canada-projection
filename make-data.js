@@ -59,7 +59,7 @@ Object.keys(HD.presets).forEach(function (name) {
   var p = HD.presets[name];
   var out = HD.run(Object.assign({}, base, p));
   out.years.forEach(function (y, t) {
-    [["prohibition retained", "a"], ["germline exception", "b"]].forEach(function (s) {
+    [["prohibition retained", "a"], ["AHRA amended", "b"]].forEach(function (s) {
       var d = out[s[1]];
       rows.push([name, p.cov, p.start, y, Math.round(out.pop[t]), s[0],
                  r2(d.man[t]), r2(d.car[t]),
@@ -74,9 +74,9 @@ fs.writeFileSync("data/projections.csv", csv(rows));
 var mc = HD.montecarlo(Object.assign({}, base, HD.presets.broad), 500, 20260101);
 var bandRows = [["year", "scenario", "measure", "p05", "p50", "p95"]];
 [["aMan", "prohibition retained", "diagnosed"],
- ["bMan", "germline exception", "diagnosed"],
+ ["bMan", "AHRA amended", "diagnosed"],
  ["aCar", "prohibition retained", "carriers"],
- ["bCar", "germline exception", "carriers"]].forEach(function (k) {
+ ["bCar", "AHRA amended", "carriers"]].forEach(function (k) {
   var b = mc.bands[k[0]];
   mc.years.forEach(function (y, t) {
     bandRows.push([y, k[1], k[2], r2(b.lo[t]), r2(b.mid[t]), r2(b.hi[t])]);

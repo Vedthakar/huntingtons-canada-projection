@@ -14,7 +14,7 @@
   --ink-2:#565048;
   --ink-3:#8a8278;
   --s1:#2a78d6;      /* no policy change */
-  --s2:#eb6834;      /* with germline exception */
+  --s2:#eb6834;      /* with the AHRA amended */
   --accent:#2a78d6;
   --warn:#8a5a00;
   --font-sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -285,6 +285,19 @@ code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);p
 }
 .flag b{color:var(--ink)}
 
+/* The thesis as written in the brief, kept beside the scenario buttons so
+   the page always states which policy it is actually modelling. */
+.thesis{
+  margin:.9rem 0 0;
+  padding:.75rem .9rem;
+  border-left:3px solid var(--s2);
+  background:var(--surface-2);
+  border-radius:0 7px 7px 0;
+  font-size:13.5px;line-height:1.55;color:var(--ink-2);
+}
+.thesis b{color:var(--ink);font-weight:600}
+.thesis span{display:block;margin-top:.45rem;color:var(--ink-3);font-size:12.5px}
+
 /* --- the data section ------------------------------------------------- */
 .dl-grid{
   display:grid;
@@ -329,9 +342,9 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
 <div class="wrap">
 
   <header>
-    <p class="eyebrow">Assisted Human Reproduction Act · germline exception · case model</p>
+    <p class="eyebrow">Assisted Human Reproduction Act · the proposed amendment · case model</p>
     <h1>Projected Huntington's disease burden in Canada, 2026–2076</h1>
-    <p class="standfirst">An age-structured transmission model. The blue line holds the current prohibition; the orange line opens a germline exception in a given year and reaches a given share of at-risk conceptions. <strong>The gap between them is the entire policy argument</strong> — and the shape of that gap, not just its size, is what the model is for.</p>
+    <p class="standfirst">An age-structured transmission model. The blue line retains the current prohibition; the orange line amends the Act <strong>under the condition we argue for</strong> — autosomal dominant disease where one parent is homozygous, so 100% of their offspring inherit the condition and safer alternatives such as IVF with PGT-M are non-viable. <strong>The gap between them is the entire policy argument</strong> — and the shape of that gap, not just its size, is what the model is for.</p>
       <p style="margin:.9rem 0 0"><a href="how-it-works.html" style="font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:1px">HOW THE MODEL WORKS &rarr;</a></p>
   </header>
 
@@ -339,10 +352,12 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
     <div class="scenario-row">
       <span class="lbl">Scenario</span>
       <button class="preset" data-preset="status" aria-pressed="false">Status quo</button>
-      <button class="preset" data-preset="narrow" aria-pressed="false">Narrow exception</button>
+      <button class="preset" data-preset="narrow" aria-pressed="false">Our amendment</button>
       <button class="preset" data-preset="broad" aria-pressed="true">Broad eligibility</button>
       <button class="preset" data-preset="ceiling" aria-pressed="false">Theoretical ceiling</button>
     </div>
+
+    <p class="thesis">The amendment being modelled, as written: the <i>Assisted Human Reproduction Act</i> is <b>amended, under the condition that it is used in autosomal dominant diseases where one parent is homozygous</b> — has both mutated copies, meaning 100% of their offspring inherit the condition — <b>and alternative safer methods such as IVF are non-viable.</b> <span>&ldquo;Our amendment&rdquo; is that case at honest scale; the wider presets answer the &ldquo;where does this lead&rdquo; question that follows it.</span></p>
 
     <div class="controls">
       <div class="ctrl">
@@ -406,7 +421,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
 
     <div class="legend">
       <span><i class="swatch" style="background:var(--s1)"></i> Prohibition retained</span>
-      <span><i class="swatch" style="background:var(--s2)"></i> Germline exception</span>
+      <span><i class="swatch" style="background:var(--s2)"></i> AHRA amended</span>
     </div>
     <p class="chart-sub" id="zero-note" hidden style="margin-top:.5rem"><strong>Coverage is 0%, so the two lines are identical and sit exactly on top of each other.</strong> That is not a rendering fault — with no conceptions reached, the amendment changes nothing and the scenarios are the same projection. Raise coverage, or pick another scenario, to separate them.</p>
     <p class="chart-sub" id="band-note" hidden style="margin-top:.5rem">Shaded ribbons are 90% intervals from <span id="band-n">500</span> Monte Carlo draws over the nine uncertain inputs. While they are shown, the prevalence, efficacy, new-mutation and growth sliders are superseded by their full distributions — coverage and start year still apply, because those are the policy rather than a fact about the world.</p>
@@ -420,7 +435,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
 
       <div class="readout">
         <div class="stat a"><span class="k">Prohibition retained</span><span class="v" id="r-a">—</span><span class="s" id="r-as">—</span></div>
-        <div class="stat b"><span class="k">Germline exception</span><span class="v" id="r-b">—</span><span class="s" id="r-bs">—</span></div>
+        <div class="stat b"><span class="k">AHRA amended</span><span class="v" id="r-b">—</span><span class="s" id="r-bs">—</span></div>
         <div class="stat"><span class="k" id="r-dk">Cases averted</span><span class="v" id="r-d">—</span><span class="s" id="r-ds">—</span></div>
         <div class="stat"><span class="k">Births prevented, cumulative</span><span class="v" id="r-c">—</span><span class="s">expansion-carrying conceptions since policy start</span></div>
       </div>
@@ -489,7 +504,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
     </div>
     <div class="note">
       <h3>What the coverage slider really means</h3>
-      <p>Your proposed amendment is narrow: autosomal dominant disease where one parent is homozygous, so that no unaffected embryo exists and PGT-M has nothing to select. Homozygosity is roughly <strong>0.3%</strong> of Huntington's cases. Set honestly, that is coverage near 1% — the <strong>Narrow exception</strong> preset — and the two lines are visually indistinguishable for the whole window.</p>
+      <p>Your proposed amendment is narrow: autosomal dominant disease where one parent is homozygous, so that no unaffected embryo exists and PGT-M has nothing to select. Homozygosity is roughly <strong>0.3%</strong> of Huntington's cases. Set honestly, that is coverage near 1%, which is what the <strong>Our amendment</strong> preset sets, and the two lines are visually indistinguishable for the whole window.</p>
       <p>That is not a defect in the argument. It is the argument: the amendment is a <strong>targeted response to an absolute medical necessity</strong>, not a public health program. The higher presets show what broader eligibility would buy, which is the question the panel will ask next.</p>
     </div>
     <div class="note">
@@ -869,7 +884,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
                "carriers_per_100k,births_prevented_cumulative");
     var r2 = function(x){ return Math.round(x*100)/100; };
     d.years.forEach(function(y,t){
-      [["prohibition retained","a"],["germline exception","b"]].forEach(function(s){
+      [["prohibition retained","a"],["AHRA amended","b"]].forEach(function(s){
         var m = d[s[1]];
         lines.push([y, Math.round(d.pop[t]), s[0], r2(m.man[t]), r2(m.car[t]),
                     r2(m.man[t]/d.pop[t]*1e5), r2(m.car[t]/d.pop[t]*1e5),
