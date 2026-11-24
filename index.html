@@ -311,16 +311,16 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   <section class="panel panel-pad">
     <div class="scenario-row">
       <span class="lbl">Scenario</span>
-      <button class="preset" data-preset="status" aria-pressed="true">Status quo</button>
+      <button class="preset" data-preset="status" aria-pressed="false">Status quo</button>
       <button class="preset" data-preset="narrow" aria-pressed="false">Narrow exception</button>
-      <button class="preset" data-preset="broad" aria-pressed="false">Broad eligibility</button>
+      <button class="preset" data-preset="broad" aria-pressed="true">Broad eligibility</button>
       <button class="preset" data-preset="ceiling" aria-pressed="false">Theoretical ceiling</button>
     </div>
 
     <div class="controls">
       <div class="ctrl">
         <div class="ctrl-head"><label for="cov">Share of at-risk conceptions reached</label><span class="val" id="cov-v">0%</span></div>
-        <input type="range" id="cov" min="0" max="100" step="1" value="0">
+        <input type="range" id="cov" min="0" max="100" step="1" value="45">
         <span class="hint">The real ceiling. Roughly half of transmissions happen before the parent is diagnosed, and uptake of predictive testing in at-risk adults runs under 20%.</span>
       </div>
       <div class="ctrl">
@@ -381,6 +381,7 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       <span><i class="swatch" style="background:var(--s1)"></i> Prohibition retained</span>
       <span><i class="swatch" style="background:var(--s2)"></i> Germline exception</span>
     </div>
+    <p class="chart-sub" id="zero-note" hidden style="margin-top:.5rem"><strong>Coverage is 0%, so the two lines are identical and sit exactly on top of each other.</strong> That is not a rendering fault — with no conceptions reached, the amendment changes nothing and the scenarios are the same projection. Raise coverage, or pick another scenario, to separate them.</p>
     <p class="chart-sub" id="band-note" hidden style="margin-top:.5rem">Shaded ribbons are 90% intervals from <span id="band-n">500</span> Monte Carlo draws over the nine uncertain inputs. While they are shown, the prevalence, efficacy, new-mutation and growth sliders are superseded by their full distributions — coverage and start year still apply, because those are the policy rather than a fact about the world.</p>
 
     <div class="scrub">
@@ -488,7 +489,12 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   var run = HDModel.run;
 
   // --- state -------------------------------------------------------------
-  var st = {cov:0, eff:0.90, start:2035, prev:13.7, denovo:0.06, growth:0.006,
+  /* Opens on broad eligibility, NOT on the status quo. At cov = 0 the two
+     scenarios are identical by construction, so the chart drew one line on
+     top of another and read as broken to anyone seeing it for the first
+     time. The landing state should show the mechanism working; the status
+     quo is one click away and now explains its own flat case. */
+  var st = {cov:0.45, eff:0.90, start:2035, prev:13.7, denovo:0.06, growth:0.006,
             pop:"manifest", unit:"count", year:2076, band:"off"};
   var data = null;
 
@@ -669,6 +675,8 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   // --- render ------------------------------------------------------------
   function render(){
     data = run(st);
+    // At zero coverage the lines coincide exactly; say so, or it reads as a bug.
+    $("zero-note").hidden = st.cov !== 0;
     var key = st.pop === "manifest" ? "man" : "car";
     var ti = st.year - Y0;
     var a = data.a[key][ti], b = data.b[key][ti], pop = data.pop[ti];
@@ -761,11 +769,19 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   }
 
   // --- wiring ------------------------------------------------------------
+  /* Each slider's readout is derived from its own value here at startup as
+     well as on input, so the markup can never disagree with the state it is
+     supposed to describe. */
+  var readouts = [];
   function bind(id, apply, show){
     var inp = $(id);
-    inp.addEventListener("input", function(){
+    function sync(){
       apply(parseFloat(inp.value));
       $(id+"-v").textContent = show(parseFloat(inp.value));
+    }
+    readouts.push(sync);
+    inp.addEventListener("input", function(){
+      sync();
       syncPresets();
       render();
     });
@@ -776,6 +792,8 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   bind("prev",  function(v){ st.prev = v; },       function(v){ return v.toFixed(1); });
   bind("denovo",function(v){ st.denovo = v/100; }, function(v){ return v+"%"; });
   bind("growth",function(v){ st.growth = v/100; }, function(v){ return v.toFixed(2)+"%/yr"; });
+  readouts.forEach(function(sync){ sync(); });
+  $("year-v").textContent = $("year").value;
 
   $("year").addEventListener("input", function(){
     st.year = parseInt(this.value,10);
