@@ -157,6 +157,18 @@ check("the estimate is stable across seeds", drift < 0.01,
 check("zero coverage yields no modelled reduction",
       HD.montecarlo({ cov: 0, start: 2035 }, 120, 4242).reductionCar2076.hi < 1e-9);
 
+// The strongest rebuttal in the deck: the prevalence estimate is the figure
+// most likely to be attacked, and it cancels out of the ratio exactly, because
+// it only scales the carrier pool. If this ever fails, that argument is void.
+function redAt(p) {
+  var x = HD.run(Object.assign({}, base, HD.presets.broad, { prev: p }));
+  return (x.a.car[50] - x.b.car[50]) / x.a.car[50];
+}
+check("the proportional effect is exactly invariant to prevalence",
+      Math.abs(redAt(27.4) - redAt(13.7)) < 1e-12 &&
+      Math.abs(redAt(6.85) - redAt(13.7)) < 1e-12,
+      "half, base and double all give " + p1(redAt(13.7)));
+
 // ---- narrow exception, the team's actual proposal ---------------------
 var narrow = HD.run(Object.assign({}, base, HD.presets.narrow));
 console.log("\nNarrow exception (homozygous-parent cases only, ~1% coverage)");

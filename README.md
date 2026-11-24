@@ -10,6 +10,7 @@ Built for a case competition arguing that the AHRA should be amended for autosom
 |---|---|
 | **The projection tool** | [`index.html`](index.html) — two scenarios, six live parameters, year scrubber, 90% uncertainty bands |
 | **How the model works** | [`how-it-works.html`](how-it-works.html) — diagrams, equations, Q&A prep |
+| **The uncertainty slide** | [`UNCERTAINTY-SLIDE.md`](UNCERTAINTY-SLIDE.md) — one slide, the numbers, and prepared Q&A answers |
 
 Both run as plain static pages. Clone and open `index.html`, or use the GitHub Pages link in the repo sidebar.
 
@@ -61,17 +62,20 @@ The analysis also ranks what the answer depends on, by rank-correlating each sam
 
 ```
 efficacy        +0.89   ← the only input worth arguing about
-new mutations   -0.32   ← negative: more de novo means less reducible
-HD survival     +0.22
-pop. growth     +0.16
-onset median    -0.13
-prevalence      +0.08   ← the number people fight over barely matters
-fertility       +0.06
+new mutations   -0.33   ← negative: more de novo means less reducible
+HD survival     +0.20
+pop. growth     +0.18
+onset median    -0.16
+prevalence      +0.06   ← the number people fight over barely matters
+fertility       +0.03
 penetrance      -0.02
-onset spread    +0.01
+onset spread    -0.00
 ```
 
-That bottom half is the useful part: if an opposing team attacks the prevalence figure, the model's own sensitivity analysis says it changes almost nothing.
+(Spearman rank correlations against the 2076 carrier reduction, 500 draws, seed
+20260101 — the figures `node verify.js` and the tool's tornado both reproduce.)
+
+That bottom half is the useful part: if an opposing team attacks the prevalence figure, the model's own sensitivity analysis says it changes almost nothing. In fact prevalence cancels out of the ratio **exactly** — it only scales the carrier pool, so halving or doubling it leaves the proportional reduction at 35.0% to the digit, and the residual +0.06 above is sampling noise. That invariance is asserted in `verify.js`.
 
 ---
 
@@ -126,7 +130,7 @@ It is not a difference in transmission. Every carrier passes the expansion to ha
 node verify.js
 ```
 
-Nineteen assertions covering calibration, baseline flatness, the onset lag, the de novo floor, monotonicity in coverage, and the Monte Carlo layer — band ordering, seed stability, and that the deterministic run falls inside its own interval. All pass on the committed parameters.
+Twenty assertions covering calibration, baseline flatness, the onset lag, the de novo floor, monotonicity in coverage, and the Monte Carlo layer — band ordering, seed stability, and that the deterministic run falls inside its own interval. All pass on the committed parameters.
 
 ## Files
 
