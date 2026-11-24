@@ -284,6 +284,33 @@ code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);p
   font-size:13.5px;color:var(--ink-2);
 }
 .flag b{color:var(--ink)}
+
+/* --- the data section ------------------------------------------------- */
+.dl-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:.6rem;
+}
+.dl{
+  display:flex;flex-direction:column;gap:.3rem;
+  padding:.8rem .9rem;
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:9px;
+  text-decoration:none;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+  transition:border-color .13s, transform .13s;
+}
+.dl:hover{border-color:var(--s1);transform:translateY(-1px)}
+.dl-name{
+  font-family:var(--font-mono);font-size:12.5px;font-weight:600;
+  color:var(--s1);letter-spacing:.01em;
+}
+.dl-live .dl-name{color:var(--s2)}
+.dl-live:hover{border-color:var(--s2)}
+.dl-sub{font-size:12.5px;color:var(--ink-3);line-height:1.45}
 details summary{
   cursor:pointer;font-size:13px;color:var(--ink-2);
   font-family:var(--font-mono);letter-spacing:.04em;
@@ -469,6 +496,34 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
       <h3>The floor the model will not cross</h3>
       <p>Even at 100% coverage and 100% efficacy, the orange line flattens rather than falling to zero. New expansions keep arising from intermediate alleles carried by parents with no family history and no reason to be screened.</p>
       <p>Huntington's is reducible, not eliminable. Any claim that germline editing "ends" the disease is false, and the de novo slider is there so you can show exactly where the floor sits under your own assumptions.</p>
+    </div>
+  </section>
+
+  <section class="panel panel-pad" id="data">
+    <h3 class="minihead" style="margin:0 0 .5rem">The data</h3>
+    <p class="chart-sub" style="margin:0 0 1rem"><strong>There is no input dataset.</strong> Nothing here was fitted or trained — the model is a mechanism driven by published parameters, so what can be downloaded is the parameter sheet that goes in and the projections that come out. Everything below regenerates exactly with <code>node make-data.js</code>.</p>
+
+    <div class="dl-grid">
+      <a class="dl" href="data/parameters.csv" download>
+        <span class="dl-name">parameters.csv</span>
+        <span class="dl-sub">Every input: value, units, prior distribution, range, and the citation it comes from. 13 rows.</span>
+      </a>
+      <a class="dl" href="data/projections.csv" download>
+        <span class="dl-name">projections.csv</span>
+        <span class="dl-sub">Year by year, 2026-2076, both scenarios, all four presets: population, diagnosed, carriers, rates per 100k. 408 rows.</span>
+      </a>
+      <a class="dl" href="data/monte-carlo-bands.csv" download>
+        <span class="dl-name">monte-carlo-bands.csv</span>
+        <span class="dl-sub">5th / 50th / 95th percentiles per year from 500 draws, seed 20260101. 204 rows.</span>
+      </a>
+      <a class="dl" href="data/sensitivity-drivers.csv" download>
+        <span class="dl-name">sensitivity-drivers.csv</span>
+        <span class="dl-sub">Rank correlation of each input against the 2076 carrier reduction. 9 rows.</span>
+      </a>
+      <button class="dl dl-live" id="dl-current" type="button">
+        <span class="dl-name">Download what is on screen &darr;</span>
+        <span class="dl-sub">The scenario you have set right now, exported as CSV for Excel or Sheets.</span>
+      </button>
     </div>
   </section>
 
@@ -794,6 +849,42 @@ td{font-family:var(--font-mono);color:var(--ink-2)}
   bind("growth",function(v){ st.growth = v/100; }, function(v){ return v.toFixed(2)+"%/yr"; });
   readouts.forEach(function(sync){ sync(); });
   $("year-v").textContent = $("year").value;
+
+  /* Export whatever is currently on screen. The header block records the
+     settings that produced it, so a CSV sitting in someone's Downloads
+     folder is still self-describing a week later. */
+  $("dl-current").addEventListener("click", function(){
+    var d = run(st), lines = [];
+    lines.push("# Huntington's disease in Canada - projection output");
+    lines.push("# Generated " + new Date().toISOString().slice(0,10) +
+               " from " + location.origin + location.pathname);
+    lines.push("# Model output, not observed data. Nothing here was fitted.");
+    lines.push("# coverage," + (st.cov*100).toFixed(0) + "%");
+    lines.push("# efficacy," + (st.eff*100).toFixed(0) + "%");
+    lines.push("# policy_start_year," + st.start);
+    lines.push("# prevalence_per_100k," + st.prev);
+    lines.push("# de_novo_share," + (st.denovo*100).toFixed(1) + "%");
+    lines.push("# population_growth," + (st.growth*100).toFixed(2) + "%/yr");
+    lines.push("year,population,scenario,diagnosed,carriers,diagnosed_per_100k," +
+               "carriers_per_100k,births_prevented_cumulative");
+    var r2 = function(x){ return Math.round(x*100)/100; };
+    d.years.forEach(function(y,t){
+      [["prohibition retained","a"],["germline exception","b"]].forEach(function(s){
+        var m = d[s[1]];
+        lines.push([y, Math.round(d.pop[t]), s[0], r2(m.man[t]), r2(m.car[t]),
+                    r2(m.man[t]/d.pop[t]*1e5), r2(m.car[t]/d.pop[t]*1e5),
+                    s[1]==="b" ? r2(d.prevented[t]) : 0].join(","));
+      });
+    });
+    var blob = new Blob([lines.join("\n")+"\n"], {type:"text/csv;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "hd-projection-cov" + (st.cov*100).toFixed(0) +
+                 "-from" + st.start + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
 
   $("year").addEventListener("input", function(){
     st.year = parseInt(this.value,10);

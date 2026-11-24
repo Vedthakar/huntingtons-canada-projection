@@ -11,6 +11,7 @@ Built for a case competition arguing that the AHRA should be amended for autosom
 | **The projection tool** | [`index.html`](index.html) — two scenarios, six live parameters, year scrubber, 90% uncertainty bands |
 | **How the model works** | [`how-it-works.html`](how-it-works.html) — diagrams, equations, Q&A prep |
 | **The uncertainty slide** | [`UNCERTAINTY-SLIDE.md`](UNCERTAINTY-SLIDE.md) — one slide, the numbers, and prepared Q&A answers |
+| **The data** | [`data/`](data) — parameters in, projections out, as CSV |
 
 Both run as plain static pages. Clone and open `index.html`, or use the GitHub Pages link in the repo sidebar.
 
@@ -132,6 +133,32 @@ node verify.js
 
 Twenty assertions covering calibration, baseline flatness, the onset lag, the de novo floor, monotonicity in coverage, and the Monte Carlo layer — band ordering, seed stability, and that the deterministic run falls inside its own interval. All pass on the committed parameters.
 
+## The data
+
+**There is no input dataset, and that is not an oversight.** Nothing was fitted or
+trained, so there is no training set, no holdout and no observed series the model
+was matched against. What `data/` holds is the parameter sheet going *in* and the
+projections coming *out*:
+
+| File | What it is |
+|---|---|
+| `data/parameters.csv` | every input: value, units, prior distribution, range, citation |
+| `data/projections.csv` | 2026–2076, both scenarios, all four presets, counts and rates |
+| `data/monte-carlo-bands.csv` | p05 / p50 / p95 per year, 500 draws, seed 20260101 |
+| `data/sensitivity-drivers.csv` | rank correlation of each input against the 2076 reduction |
+
+```bash
+node make-data.js
+```
+
+Regenerates all four deterministically. The tool also has a **Download what is on
+screen** button that exports the current scenario as CSV with the settings that
+produced it recorded in the header lines — so a file in someone's Downloads folder
+still explains itself a week later.
+
+The published numbers are model output. Label them that way in the deck; the only
+genuinely external figures are the ones in `parameters.csv`, each with its source.
+
 ## Files
 
 ```
@@ -139,6 +166,8 @@ index.html         the projection tool
 how-it-works.html  explainer with diagrams, equations and Q&A prep
 model.js           the model core + Monte Carlo layer — shared by both pages and verify.js
 verify.js          numerical sanity checks
+make-data.js       regenerates everything under data/
+data/              parameter sheet and projection output, as CSV
 ```
 
 `model.js` exposes two entry points: `run(opts)` for a single deterministic projection, and `montecarlo(opts, n, seed)` for the probabilistic version, which returns per-year percentile bands, interval estimates for the 2076 headline figures, and the driver ranking.

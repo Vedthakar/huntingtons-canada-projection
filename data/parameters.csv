@@ -1,0 +1,14 @@
+parameter,symbol,value,units,prior_distribution,prior_range,source
+"Diagnosed prevalence, 2026",,13.7,"per 100,000",normal (sd 1.3),9 - 19,"Fisher & Hayden, British Columbia population study, Movement Disorders, 2014"
+Mendelian transmission,,0.5,probability per conception,fixed,,Autosomal dominant inheritance; not uncertain
+De novo share of incidence,phi,0.06,share,uniform,0.04 - 0.10,Standard 5-10% range for new expansions from intermediate alleles (27-35 CAG)
+Per-embryo editing efficacy,epsilon,0.9,share,triangular,0.70 - 0.99,Scenario judgement: pessimistic to near-perfect editing
+Full-penetrance share (>=40 CAG),pi,0.95,share,uniform,0.92 - 0.98,"Caron, Wright & Hayden, GeneReviews, 2020; Kay et al., Neurology 87(3), 2016"
+Onset distribution median,,45,years,triangular,40 - 50,"Caron, Wright & Hayden, GeneReviews, 2020"
+Onset distribution scale,,8,years,uniform,6.5 - 9.5,Width of the logistic onset curve
+Excess hazard once symptomatic,,0.055,per year,uniform,0.045 - 0.067,Implies roughly 15-22 year median survival from onset
+Background mortality,m(a),0.00022*exp(0.085a)+0.0005,per year,fixed,,Gompertz fit to Canadian all-cause mortality
+Total fertility rate,TFR,1.26,births per woman,triangular,1.05 - 1.55,"Statistics Canada, 2023"
+"Population, 2026",,41500000,people,fixed,,Statistics Canada population estimate
+Annual population growth,,0.006,per year,triangular,0.002 - 0.011,"Statistics Canada projections, low to high scenarios"
+Homozygosity among HD cases,,0.003,share,not sampled,,"Sengupta & Dasgupta, Clinical Case Reports, 2026; sets the narrow preset's ~1% coverage"
